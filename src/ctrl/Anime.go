@@ -6,6 +6,7 @@ import (
 	"model"
 	"regexp"
 	"strconv"
+	"time"
 	"tools"
 )
 
@@ -34,9 +35,19 @@ func AnimeItemHandle(i int, url string, anime chan int) {
 	AnimeData := model.AnimeData{}
 	AnimeData = AnimeItemExtractHandle(rs)
 
-	Picture := SaveImg(AnimeData.Picture)
-	go Save2Mysql(AnimeData, Picture)
-
+	str := extractHandle(AnimeData.Picture, `/([0-9a-z]+\.[a-z]+)`, 1)
+	nowTime := int(time.Now().Unix())
+	timestr := strconv.Itoa(nowTime)
+	path := "./public/upload/anime"
+	imgPath := path + "/" + timestr + ".jpg"
+	img := "/upload/anime/" + timestr + ".jpg"
+	if len(str) > 0 {
+		imgPath = path + "/" + str[0]
+		img = "/upload/anime/" + str[0]
+	}
+	go SaveImg(AnimeData.Picture, imgPath, path, str)
+	go Save2Mysql(AnimeData, img)
+	time.Sleep(time.Second)
 	anime <- i
 }
 

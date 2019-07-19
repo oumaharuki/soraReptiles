@@ -7,7 +7,7 @@ import (
 
 func IndexGetDoReptiles(req *http.Request, r render.Render) {
 	start := 1
-	end := 1
+	end := 54
 	bol := Work(start, end)
 
 	if bol {

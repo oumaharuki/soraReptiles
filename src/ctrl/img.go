@@ -6,7 +6,6 @@ import (
 	"model"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 	"tools"
 )
@@ -21,21 +20,11 @@ func Exists(path string) bool {
 	}
 	return true
 }
-func SaveImg(url string) (img string) {
+func SaveImg(url, imgPath, path string, str []string) {
 	///upload/vod/20190712-1/37028a8a314e23ed79ef7e4c31dd14b4.jpg
-	str := extractHandle(url, `/([0-9a-z]+\.[a-z]+)`, 1)
-	path := "./public/upload/anime"
 
 	fmt.Println(str)
 	fmt.Println(len(str))
-	nowTime := int(time.Now().Unix())
-	timestr := strconv.Itoa(nowTime)
-	imgPath := path + "/" + timestr + ".jpg"
-	img = "/upload/anime/" + timestr + ".jpg"
-	if len(str) > 0 {
-		imgPath = path + "/" + str[0]
-		img = "/upload/anime/" + str[0]
-	}
 
 	url = "http://pilipali.cc" + url
 	bol := Exists(path)
@@ -44,13 +33,13 @@ func SaveImg(url string) (img string) {
 		err1 := os.Mkdir(path, os.ModePerm) //创建文件夹
 		if err1 != nil {
 			fmt.Println(err1)
-			return ""
+			return
 		}
 		f, err := os.Create(imgPath)
 
 		resp, err := http.Get(url)
 		if err != nil {
-			return ""
+			return
 		}
 		defer resp.Body.Close()
 
@@ -62,7 +51,7 @@ func SaveImg(url string) (img string) {
 			}
 			if err1 != nil && err1 != io.EOF {
 				err = err1
-				return ""
+				return
 			}
 
 			f.Write(buf[:n])
@@ -71,7 +60,7 @@ func SaveImg(url string) (img string) {
 		f, err := os.Create(imgPath)
 		resp, err := http.Get(url)
 		if err != nil {
-			return ""
+			return
 		}
 		defer resp.Body.Close()
 
@@ -83,13 +72,13 @@ func SaveImg(url string) (img string) {
 			}
 			if err1 != nil && err1 != io.EOF {
 				err = err1
-				return ""
+				return
 			}
 
 			f.Write(buf[:n])
 		}
 	}
-	return img
+	time.Sleep(time.Second)
 }
 func Save2Mysql(AnimeData model.AnimeData, Picture string) {
 	dbConn := tools.GetDefDb()
