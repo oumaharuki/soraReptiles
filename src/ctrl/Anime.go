@@ -1,39 +1,47 @@
 package ctrl
 
 import (
+	"encoding/json"
 	"fmt"
 	"model"
 	"regexp"
 	"strconv"
+	"tools"
 )
 
 func AnimeHandle(rs string) {
 	reg := regexp.MustCompile(`<a class="v-playBtn" href="(?s:(.*?))"`)
-	allUrl := reg.FindAllStringSubmatch(rs, 1)
-	page := make(chan int)
+	allUrl := reg.FindAllStringSubmatch(rs, -1)
+
+	anime := make(chan int)
 	for i, item := range allUrl {
-		fmt.Println("第" + strconv.Itoa(i) + "个：" + item[1])
+		fmt.Println("第" + strconv.Itoa(i+1) + "个：" + item[1])
 		//处理单个动漫
-		go AnimeItemHandle(i, item[1], page)
+		go AnimeItemHandle(i+1, item[1], anime)
 	}
 	for i := 0; i <= len(allUrl); i++ {
-		fmt.Printf("第%d个结束\n", <-page)
+		fmt.Println(<-anime)
 	}
 }
 
 //处理单个动漫
-func AnimeItemHandle(i int, url string, page chan int) {
+func AnimeItemHandle(i int, url string, anime chan int) {
 	url = "http://pilipali.cc" + url
 	rs, err := HttpGet(url)
 	if err != nil {
 		return
 	}
-	AnimeItemExtractHandle(rs)
-	page <- i
+	AnimeData := model.AnimeData{}
+	AnimeData = AnimeItemExtractHandle(rs)
+
+	Picture := SaveImg(AnimeData.Picture)
+	go Save2Mysql(AnimeData, Picture)
+
+	anime <- i
 }
 
 //单个动漫数据提取
-func AnimeItemExtractHandle(rs string) {
+func AnimeItemExtractHandle(rs string) model.AnimeData {
 	//title
 	title := extractHandle(rs, `<div class="tit"><h1 class="clearfix">(?s:(.*?))</h1>`, 1)
 	//em_num
@@ -49,7 +57,7 @@ func AnimeItemExtractHandle(rs string) {
 	//picture
 	picture := extractHandle(rs, `class="v-pic"><img src="(?s:(.*?))"`, 1)
 	//drama 剧集，多个，不同源
-	dramas := extractHandle(rs, `<li><a href="(?s:(.*?))</a></li>`, -1)
+	dramas := extractHandle(rs, `<li><a href="(?s:(.*?))</li>`, -1)
 	//introduction 简介
 	introduction := extractHandle(rs, `<div class="tv-bd"><div class="infor_intro">(?s:(.*?))</div>`, 1)
 
@@ -60,16 +68,32 @@ func AnimeItemExtractHandle(rs string) {
 	star := extractHandle(starStr, `target="_blank">(?s:(.*?))</a>`, -1)
 	drama := ExtractDramaHandle(dramas)
 	arr := LinkHandle(drama)
-	fmt.Println(title)
-	fmt.Println(em_num)
-	fmt.Println(year)
-	fmt.Println(area)
-	fmt.Println(star)
-	fmt.Println(director)
-	fmt.Println(picture)
-	fmt.Println(drama)
-	fmt.Println(introduction)
+
+	AnimeData := model.AnimeData{}
+	if len(title) > 0 {
+		AnimeData.Title = title[0]
+	}
+	if len(em_num) > 0 {
+		AnimeData.EmNum = em_num[0]
+	}
+	if len(year) > 0 {
+		AnimeData.Year = year[0]
+	}
+	if len(area) > 0 {
+		AnimeData.Area = area[0]
+	}
+	AnimeData.Star = star
+	AnimeData.Director = director
+	if len(picture) > 0 {
+		AnimeData.Picture = picture[0]
+	}
+	if len(introduction) > 0 {
+		AnimeData.Introduction = introduction[0]
+	}
 	fmt.Println(arr)
+	AnimeData.Drama = arr
+
+	return AnimeData
 }
 
 //提取数据函数
@@ -84,11 +108,11 @@ func extractHandle(rs, regStr string, num int) (content []string) {
 }
 
 //提取每一集
-func ExtractDramaHandle(rs []string) (content []model.Drama) {
+func ExtractDramaHandle(rs []string) (content []model.Dramas) {
 	for _, item := range rs {
 		url := extractHandle(item, `(?s:(.*?))">`, 1)
-		name := extractHandle(item, `">(?s:(.*?))`, 1)
-		var drama model.Drama
+		name := extractHandle(item, `">(?s:(.*?))</a>`, 1)
+		var drama model.Dramas
 		drama.Url = url[0]
 		drama.Name = name[0]
 		content = append(content, drama)
@@ -97,28 +121,33 @@ func ExtractDramaHandle(rs []string) (content []model.Drama) {
 }
 
 //获取视频链接
-func LinkHandle(content []model.Drama) (arr []model.Drama) {
+func LinkHandle(content []model.Dramas) (DramaData []model.DramaData) {
 	for i, item := range content {
-		fmt.Println(item.Name)
+		obj := model.DramaData{}
 		//处理单个动漫
-		url := ExtractLinkHandle(i, item.Url)
-		var drama model.Drama
-		if len(url) > 0 {
-			drama.Url = url[0]
-		}
-		drama.Name = item.Name
-		arr = append(content, drama)
+		obj = ExtractLinkHandle(i, item.Url, item.Name)
+		DramaData = append(DramaData, obj)
 	}
-	return
+	return DramaData
 }
-func ExtractLinkHandle(index int, url string) []string {
+func ExtractLinkHandle(index int, url, name string) (arr model.DramaData) {
 	url = "http://pilipali.cc" + url
 	rs, err := HttpGet(url)
 	if err != nil {
-		return []string{}
+		return model.DramaData{}
 	}
 	//drama 剧集，多个，不同源
 	dramas := extractHandle(rs, `<script type="text/javascript">var player_data=(?s:(.*?))</script>`, 1)
-	fmt.Println("dramas:", dramas)
-	return dramas
+	obj := model.DramaData{}
+	if len(dramas) > 0 {
+		var b []byte = []byte(dramas[0])
+		var data model.DramaPlay
+		err = json.Unmarshal(b, &data)
+		tools.CheckErr(err)
+
+		obj.Url = data.Url
+		obj.Name = name
+		obj.From = data.From
+	}
+	return obj
 }

@@ -1,0 +1,100 @@
+{{template "header" .}}
+
+<h3>Add or Update</h3>
+<div>
+    <div> ID:
+        <input type="text" name="id" id="id" />
+    </div>
+    <div> name:
+        <input type="text" name="name" id="name" />
+    </div>
+    <div>
+        <div>
+            <Button onclick="ajaxAdd()">Add</Button>
+            <i>输入Name, 按Add增加</i>
+        </div>
+        <div>
+            <Button onclick="ajaxUpdate()">Update</Button>
+            <i>输入ID, Name, 按Update修改</i>
+        </div>
+    </div>
+
+</div>
+
+
+<h3>Table</h3>
+<table border="1">
+    {{range .items}}
+    <tr>
+        <td>{{.Id}}</td>
+        <td>{{.Name}}</td>
+        <td>
+            <Button onclick="ajaxDelete({{.Id}})">Delete</Button>
+        </td>
+    </tr>
+    {{end}}
+</table>
+
+
+<script>
+    function ajaxAdd() {
+        let name = $("#name").val();
+        console.log("add:", { name });
+
+        $.ajax({
+            url: "/",
+            type: "post",
+            processData: false,
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({ name }),
+            success: function (msg) {
+                alert("add succefully");
+                window.location.reload();
+            },
+            error: function (xhr, textstatus, thrown) {
+                alert("error:" + JSON.stringify({ xhr, textstatus, thrown }))
+
+            }
+        });
+    }
+
+    function ajaxUpdate() {
+        let id = parseInt($("#id").val()); //这个类型要和go的一致, 不然go会解析出错
+        let name = $("#name").val();
+        console.log("update:", { id, name });
+
+        $.ajax({
+            url: "/",
+            type: "put",
+            processData: false,
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({ id, name }),
+            success: function (msg) {
+                alert("update succefully");
+                window.location.reload();
+            },
+            error: function (xhr, textstatus, thrown) {
+                alert("error:" + JSON.stringify({ xhr, textstatus, thrown }))
+
+            }
+        });
+    }
+
+    function ajaxDelete(id) {
+        $.ajax({
+            url: "/?id=" + id,
+            type: "delete",
+            success: function (msg) {
+                alert("delete succefully");
+                window.location.reload();
+            },
+            error: function (xhr, textstatus, thrown) {
+                alert("error:" + JSON.stringify({ xhr, textstatus, thrown }))
+
+            }
+        });
+    }
+
+</script> {{template "footer" .}}
