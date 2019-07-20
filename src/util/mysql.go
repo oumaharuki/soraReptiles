@@ -1,85 +1,10 @@
-package ctrl
+package util
 
 import (
-	"fmt"
-	"io"
 	"model"
-	"net/http"
-	"os"
-	"time"
 	"tools"
 )
 
-func Exists(path string) bool {
-	_, err := os.Stat(path) //os.Stat获取文件信息
-	if err != nil {
-		if os.IsExist(err) {
-			return true
-		}
-		return false
-	}
-	return true
-}
-func SaveImg(url, imgPath, path string, str []string) {
-	///upload/vod/20190712-1/37028a8a314e23ed79ef7e4c31dd14b4.jpg
-
-	fmt.Println(str)
-	fmt.Println(len(str))
-
-	url = "http://pilipali.cc" + url
-	bol := Exists(path)
-
-	if !bol {
-		err1 := os.Mkdir(path, os.ModePerm) //创建文件夹
-		if err1 != nil {
-			fmt.Println(err1)
-			return
-		}
-		f, err := os.Create(imgPath)
-
-		resp, err := http.Get(url)
-		if err != nil {
-			return
-		}
-		defer resp.Body.Close()
-
-		buf := make([]byte, 4096)
-		for {
-			n, err1 := resp.Body.Read(buf)
-			if n == 0 {
-				break
-			}
-			if err1 != nil && err1 != io.EOF {
-				err = err1
-				return
-			}
-
-			f.Write(buf[:n])
-		}
-	} else {
-		f, err := os.Create(imgPath)
-		resp, err := http.Get(url)
-		if err != nil {
-			return
-		}
-		defer resp.Body.Close()
-
-		buf := make([]byte, 4096)
-		for {
-			n, err1 := resp.Body.Read(buf)
-			if n == 0 {
-				break
-			}
-			if err1 != nil && err1 != io.EOF {
-				err = err1
-				return
-			}
-
-			f.Write(buf[:n])
-		}
-	}
-	time.Sleep(time.Second)
-}
 func Save2Mysql(AnimeData model.AnimeData, Picture string) {
 	dbConn := tools.GetDefDb()
 
@@ -131,14 +56,24 @@ func Save2Mysql(AnimeData model.AnimeData, Picture string) {
 		}
 	} else {
 		for _, item := range AnimeData.Drama {
-			dramas := []model.Drama{}
-			_, err = dbConn.DbMap.Select(&dramas, "select * from drama where name=? and play_url=? and source=? and anime_id=?",
-				item.Name, item.Url, item.From, AnimeDatas[0].Id)
+			dramasById := []model.Drama{}
+			_, err = dbConn.DbMap.Select(&dramasById, "select * from drama where anime_id=?",
+				AnimeDatas[0].Id)
 			tools.CheckErr(err)
-			if len(dramas) == 0 {
+			if len(dramasById) == 0 {
 				_, err := dbConn.DbMap.Exec("insert into `drama` (`name`,`anime_id`,`play_url`,`source`"+
 					") values(?,?,?,?)", item.Name, AnimeDatas[0].Id, item.Url, item.From)
 				tools.CheckErr(err)
+			} else {
+				dramas := []model.Drama{}
+				_, err = dbConn.DbMap.Select(&dramas, "select * from drama where name=? and play_url=? and source=? and anime_id=?",
+					item.Name, item.Url, item.From, AnimeDatas[0].Id)
+				tools.CheckErr(err)
+				if len(dramas) == 0 {
+					_, err := dbConn.DbMap.Exec("update `drama` set `name`=?,`play_url`=?,`source`=?"+
+						" where anime_id=?", item.Name, item.Url, item.From, AnimeDatas[0].Id)
+					tools.CheckErr(err)
+				}
 			}
 		}
 	}

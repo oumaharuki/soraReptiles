@@ -3,30 +3,86 @@ package ctrl
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-martini/martini"
 	"io/ioutil"
+	"model"
 	"net/http"
+	"regexp"
 	"strconv"
 	"tools"
 
 	"github.com/martini-contrib/render"
 )
 
-//func getAllItems() (rs []model.Table1) {
-//	dbConn := tools.GetDefDb()
-//
-//	_, err := dbConn.DbMap.Select(&rs, "select * from table1")
-//	tools.CheckErr(err)
-//
-//	return
-//}
+type ByDrama []model.Drama
+
+func (s ByDrama) Len() int {
+	return len(s)
+}
+func (s ByDrama) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s ByDrama) Less(i, j int) bool {
+	reg := regexp.MustCompile(`.*([0-9]+).*`)
+	si := reg.FindAllStringSubmatch(s[i].Name, 1)
+	sj := reg.FindAllStringSubmatch(s[j].Name, 1)
+	siInt, _ := strconv.Atoi(si[0][1])
+	sjInt, _ := strconv.Atoi(sj[0][1])
+	return siInt < sjInt
+}
+func getAnimeByAreaAndYear(area string, year string) (rs []model.AnimeInfo) {
+	dbConn := tools.GetDefDb()
+
+	anime := []model.Anime{}
+	if year > "" {
+		_, err := dbConn.DbMap.Select(&anime, "select * from anime where area=? and year=? limit 0,11", area, year)
+		tools.CheckErr(err)
+	} else {
+		_, err := dbConn.DbMap.Select(&anime, "select * from anime where  (year=? and area=? ) or area=?  limit 0,11", year, area, area)
+		tools.CheckErr(err)
+	}
+
+	for _, item := range anime {
+		obj := model.AnimeInfo{}
+
+		director := []model.Director{}
+		_, err := dbConn.DbMap.Select(&director, "select * from director where anime_id=?", item.Id)
+		tools.CheckErr(err)
+		obj.Anime = item
+		if len(director) > 0 {
+			obj.Director = director[0].Name
+		}
+		star := []model.Star{}
+		_, err = dbConn.DbMap.Select(&star, "select * from star where anime_id=?", item.Id)
+		tools.CheckErr(err)
+
+		starStr := ""
+		if len(star) > 0 {
+			for _, o := range star {
+				starStr = starStr + " " + o.Name
+			}
+		}
+		obj.Star = starStr
+
+		rs = append(rs, obj)
+	}
+	return
+}
 
 //默认Home页
 func DefaultGetHome(req *http.Request, r render.Render) {
 
 	//items := getAllItems()
 
+	jp := getAnimeByAreaAndYear("日本", "2019")
+	gc := getAnimeByAreaAndYear("大陆", "2019")
+	om := getAnimeByAreaAndYear("欧美", "")
+
 	r.HTML(200, "default/home", map[string]interface{}{
 		"title": "I am title",
+		"jp":    jp,
+		"gc":    gc,
+		"om":    om,
 		//"items": items,
 	})
 }
@@ -108,4 +164,74 @@ func DefaultDeleteHome(req *http.Request, r render.Render) {
 
 	r.JSON(200, nil)
 
+}
+func getAnimeById(id string) (rs []model.AnimeInfo) {
+	dbConn := tools.GetDefDb()
+
+	anime := []model.Anime{}
+	_, err := dbConn.DbMap.Select(&anime, "select * from anime where id=?", id)
+	tools.CheckErr(err)
+
+	for _, item := range anime {
+		obj := model.AnimeInfo{}
+
+		director := []model.Director{}
+		_, err := dbConn.DbMap.Select(&director, "select * from director where anime_id=?", item.Id)
+		tools.CheckErr(err)
+		obj.Anime = item
+		if len(director) > 0 {
+			obj.Director = director[0].Name
+		}
+		star := []model.Star{}
+		_, err = dbConn.DbMap.Select(&star, "select * from star where anime_id=?", item.Id)
+		tools.CheckErr(err)
+
+		starStr := ""
+		if len(star) > 0 {
+			for _, o := range star {
+				starStr = starStr + " " + o.Name
+			}
+		}
+		obj.Star = starStr
+
+		drama := []model.Drama{}
+		_, err = dbConn.DbMap.Select(&drama, "select * from drama where anime_id=?", item.Id)
+		tools.CheckErr(err)
+		//fmt.Println(drama)
+		dramaMap := map[string][]model.Drama{}
+
+		for _, item := range drama {
+			fmt.Println(item)
+			dramaMap[item.Source] = append(dramaMap[item.Source], item)
+		}
+		//for _, item := range dramaMap {
+		//	sort.Sort(ByDrama(item))
+		//}
+		fmt.Println(dramaMap)
+		obj.Drama = dramaMap
+		rs = append(rs, obj)
+	}
+	return
+}
+func DefaultGetDetail(params martini.Params, req *http.Request, r render.Render) {
+	id := params["id"]
+	fmt.Println(id)
+	anime := getAnimeById(id)
+
+	fmt.Println(anime)
+	if len(anime) == 0 {
+		r.Redirect("/404", 200)
+	} else {
+		r.HTML(200, "default/detail", map[string]interface{}{
+			"title": "I am title",
+			"anime": anime[0],
+		})
+	}
+
+}
+func DefaultGetPlay(req *http.Request, r render.Render) {
+	r.HTML(200, "default/play", map[string]interface{}{
+		"title": "I am title",
+		//"items": items,
+	})
 }

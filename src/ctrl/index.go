@@ -1,20 +1,20 @@
 package ctrl
 
 import (
+	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"net/http"
+	"util"
 )
 
-func IndexGetDoReptiles(req *http.Request, r render.Render) {
-	start := 1
-	end := 54
-	bol := Work(start, end)
+func IndexGetDoReptiles(params martini.Params, req *http.Request, r render.Render) {
+	start := params["start"]
+	end := params["end"]
+	util.Anime(start, end)
 
-	if bol {
-		r.JSON(200, map[string]interface{}{
-			"insert_id": "",
-		})
-		return
-	}
+	r.JSON(200, map[string]interface{}{
+		"insert_id": "",
+	})
+	return
 
 }

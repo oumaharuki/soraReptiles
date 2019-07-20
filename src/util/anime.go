@@ -1,4 +1,4 @@
-package ctrl
+package util
 
 import (
 	"encoding/json"
@@ -6,27 +6,86 @@ import (
 	"model"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 	"tools"
 )
 
-func AnimeHandle(rs string) {
+var (
+	wgGetPage sync.WaitGroup
+	wgSave    sync.WaitGroup
+	dataChan  = make(chan model.AnimeData, 1000)
+	doChan    = make(chan int, 5)
+)
+
+func Anime(start, end string) {
+	startInt, _ := strconv.Atoi(start)
+	endInt, _ := strconv.Atoi(start)
+	for i := startInt; i <= endInt; i++ {
+		fmt.Printf("第%d页开始\n", i)
+		url := "http://pilipali.cc/vod/show/id/4/page/" + strconv.Itoa(i) + ".html"
+
+		wgGetPage.Add(1)
+		go func(pageUrl string) {
+			GetPageData(pageUrl)
+			wgGetPage.Done()
+		}(url)
+
+	}
+	go func() {
+		wgGetPage.Wait()
+		close(dataChan)
+		fmt.Println("chan close")
+	}()
+
+	for item := range dataChan {
+
+		wgSave.Add(1)
+		go func(AnimeData model.AnimeData) {
+			doChan <- 1
+			str := extractHandle(AnimeData.Picture, `/([0-9a-z]+\.[a-z]+)`, 1)
+			nowTime := int(time.Now().Unix())
+			timestr := strconv.Itoa(nowTime)
+			path := "./public/upload/anime"
+			imgPath := path + "/" + timestr + ".jpg"
+			img := "/upload/anime/" + timestr + ".jpg"
+			if len(str) > 0 {
+				imgPath = path + "/" + str[0]
+				img = "/upload/anime/" + str[0]
+			}
+
+			SaveImg(AnimeData.Picture, imgPath, path, str)
+			Save2Mysql(AnimeData, img)
+			<-doChan
+			wgSave.Done()
+		}(item)
+
+	}
+	wgSave.Wait()
+}
+func GetPageData(url string) {
+	//得到每一页动漫数据
+	rs, err := HttpGet(url)
+	if err != nil {
+		return
+	}
+
 	reg := regexp.MustCompile(`<a class="v-playBtn" href="(?s:(.*?))"`)
 	allUrl := reg.FindAllStringSubmatch(rs, -1)
 
-	anime := make(chan int)
 	for i, item := range allUrl {
 		fmt.Println("第" + strconv.Itoa(i+1) + "个：" + item[1])
 		//处理单个动漫
-		go AnimeItemHandle(i+1, item[1], anime)
+		if item[1] == "/vod/detail/id/2337.html" {
+			continue
+		}
+		AnimeItemHandle(i+1, item[1])
 	}
-	for i := 0; i <= len(allUrl); i++ {
-		fmt.Println(<-anime)
-	}
+
 }
 
 //处理单个动漫
-func AnimeItemHandle(i int, url string, anime chan int) {
+func AnimeItemHandle(i int, url string) {
 	url = "http://pilipali.cc" + url
 	rs, err := HttpGet(url)
 	if err != nil {
@@ -34,21 +93,8 @@ func AnimeItemHandle(i int, url string, anime chan int) {
 	}
 	AnimeData := model.AnimeData{}
 	AnimeData = AnimeItemExtractHandle(rs)
+	dataChan <- AnimeData
 
-	str := extractHandle(AnimeData.Picture, `/([0-9a-z]+\.[a-z]+)`, 1)
-	nowTime := int(time.Now().Unix())
-	timestr := strconv.Itoa(nowTime)
-	path := "./public/upload/anime"
-	imgPath := path + "/" + timestr + ".jpg"
-	img := "/upload/anime/" + timestr + ".jpg"
-	if len(str) > 0 {
-		imgPath = path + "/" + str[0]
-		img = "/upload/anime/" + str[0]
-	}
-	go SaveImg(AnimeData.Picture, imgPath, path, str)
-	go Save2Mysql(AnimeData, img)
-	time.Sleep(time.Second)
-	anime <- i
 }
 
 //单个动漫数据提取

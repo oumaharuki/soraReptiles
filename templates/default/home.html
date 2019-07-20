@@ -1,100 +1,208 @@
 {{template "header" .}}
-
-<h3>Add or Update</h3>
-<div>
-    <div> ID:
-        <input type="text" name="id" id="id" />
-    </div>
-    <div> name:
-        <input type="text" name="name" id="name" />
-    </div>
-    <div>
-        <div>
-            <Button onclick="ajaxAdd()">Add</Button>
-            <i>输入Name, 按Add增加</i>
+<div class="w1280">
+    <section class="imain clearfix">
+        <div class="col">
+            <div class="tv-hd">
+                <h2>日本动漫</h2>
+                <!--<div class="imore">-->
+                    <!--<a href="javascript:;" class="a_change">换一换<i class="iconfont">-->
+                        <!--</i>-->
+                    <!--</a>-->
+                    <!--<a href="/vod/show/area/%E6%97%A5%E6%9C%AC/id/4.html">更多<i class="iconfont">-->
+                    <!--</i>-->
+                    <!--</a>-->
+                <!--</div>-->
+            </div>
+            <div class="tv-bd a_clist">
+                <div class="tv-bd a_clist">
+                    <div class="aclcon1">
+                        {{ range $key, $value :=.jp }}
+                        {{ if eq $key 0}}
+                        <div class="tv-l">
+                            <div class="tvhots">
+                                <div class="v-pic">
+                                    <img data-src="{{$value.Picture}}" class="thumb" alt="{{$value.Name}}"
+                                    src="{{$value.Picture}}"
+                                    style="display: block;">
+                                    <div class="v-tips">{{$value.EmNum}}</div>
+                                    <a href="/detail/{{$value.Id}}" title="{{$value.Name}}" class="v-playBtn"><i></i></a>
+                                </div>
+                                <div class="v-txt">
+                                    <p class="v-tit">
+                                        <em class="em-tit">
+                                            <a href="/detail/{{$value.Id}}" title="{{$value.Name}}">{{$value.Name}}</a>
+                                        </em>
+                                    </p>
+                                    <p class="s-des">主持：
+                                        {{$value.Star}}
+                                    </p>
+                                    <p class="s-des">地区：
+                                        {{$value.Area}}&nbsp;
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {{ end }}
+                        {{ end }}
+                        <div class="tv-r">
+                            <ul class="tv-list">
+                        {{ range $key, $value :=.jp }}
+                            {{ if gt $key 0}}
+                            <li>
+                                <div class="v-pic">
+                                    <img data-src="{{$value.Picture}}" class="thumb" alt="{{$value.Name}}"
+                                         src="{{$value.Picture}}" style="display: block;">
+                                    <div class="v-tips">{{$value.EmNum}}</div>
+                                    <a href="/detail/{{$value.Id}}" title="{{$value.Name}}" class="v-playBtn">
+                                        <i></i>
+                                    </a>
+                                </div>
+                                <div class="v-txt"><span class="v-tit"><a href="/detail/{{$value.Id}}" title="{{$value.Name}}">
+                                            {{$value.Name}}</a></span></div></li>
+                            {{ end }}
+                        {{ end }}
+                        </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <Button onclick="ajaxUpdate()">Update</Button>
-            <i>输入ID, Name, 按Update修改</i>
+    </section>
+    <section class="imain clearfix">
+        <div class="col">
+            <div class="tv-hd">
+                <h2>国产动漫</h2>
+                <!--<div class="imore">-->
+                <!--<a href="javascript:;" class="a_change">换一换<i class="iconfont">-->
+                <!--</i>-->
+                <!--</a>-->
+                <!--<a href="/vod/show/area/%E6%97%A5%E6%9C%AC/id/4.html">更多<i class="iconfont">-->
+                <!--</i>-->
+                <!--</a>-->
+                <!--</div>-->
+            </div>
+            <div class="tv-bd a_clist">
+                <div class="tv-bd a_clist">
+                    <div class="aclcon1">
+                        {{ range $key, $value :=.gc }}
+                            {{ if eq $key 0}}
+                                <div class="tv-l">
+                                    <div class="tvhots">
+                                        <div class="v-pic">
+                                            <img data-src="{{$value.Picture}}" class="thumb" alt="{{$value.Name}}"
+                                                 src="{{$value.Picture}}"
+                                                 style="display: block;">
+                                            <div class="v-tips">{{$value.EmNum}}</div>
+                                            <a href="/detail/{{$value.Id}}" title="{{$value.Name}}" class="v-playBtn"><i></i></a>
+                                        </div>
+                                        <div class="v-txt">
+                                            <p class="v-tit">
+                                                <em class="em-tit">
+                                                    <a href="/detail/{{$value.Id}}" title="{{$value.Name}}">{{$value.Name}}</a>
+                                                </em>
+                                            </p>
+                                            <p class="s-des">主持：
+                                                {{$value.Star}}
+                                            </p>
+                                            <p class="s-des">地区：
+                                                {{$value.Area}}&nbsp;
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {{ end }}
+                        {{ end }}
+                        <div class="tv-r">
+                            <ul class="tv-list">
+                                {{ range $key, $value :=.gc }}
+                                    {{ if gt $key 0}}
+                                        <li>
+                                            <div class="v-pic">
+                                                <img data-src="{{$value.Picture}}" class="thumb" alt="{{$value.Name}}"
+                                                     src="{{$value.Picture}}" style="display: block;">
+                                                <div class="v-tips">{{$value.EmNum}}</div>
+                                                <a href="/detail/{{$value.Id}}" title="{{$value.Name}}" class="v-playBtn">
+                                                    <i></i>
+                                                </a>
+                                            </div>
+                                            <div class="v-txt"><span class="v-tit"><a href="/detail/{{$value.Id}}" title="{{$value.Name}}">
+                                            {{$value.Name}}</a></span></div></li>
+                                    {{ end }}
+                                {{ end }}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-
+    </section>
+    <section class="imain clearfix">
+        <div class="col">
+            <div class="tv-hd">
+                <h2>欧美动漫</h2>
+                <!--<div class="imore">-->
+                <!--<a href="javascript:;" class="a_change">换一换<i class="iconfont">-->
+                <!--</i>-->
+                <!--</a>-->
+                <!--<a href="/vod/show/area/%E6%97%A5%E6%9C%AC/id/4.html">更多<i class="iconfont">-->
+                <!--</i>-->
+                <!--</a>-->
+                <!--</div>-->
+            </div>
+            <div class="tv-bd a_clist">
+                <div class="tv-bd a_clist">
+                    <div class="aclcon1">
+                        {{ range $key, $value :=.om }}
+                        {{ if eq $key 0}}
+                        <div class="tv-l">
+                            <div class="tvhots">
+                                <div class="v-pic">
+                                    <img data-src="{{$value.Picture}}" class="thumb" alt="{{$value.Name}}"
+                                         src="{{$value.Picture}}"
+                                         style="display: block;">
+                                    <div class="v-tips">{{$value.EmNum}}</div>
+                                    <a href="/detail/{{$value.Id}}" title="{{$value.Name}}" class="v-playBtn"><i></i></a>
+                                </div>
+                                <div class="v-txt">
+                                    <p class="v-tit">
+                                        <em class="em-tit">
+                                            <a href="/detail/{{$value.Id}}" title="{{$value.Name}}">{{$value.Name}}</a>
+                                        </em>
+                                    </p>
+                                    <p class="s-des">主持：
+                                        {{$value.Star}}
+                                    </p>
+                                    <p class="s-des">地区：
+                                        {{$value.Area}}&nbsp;
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {{ end }}
+                        {{ end }}
+                        <div class="tv-r">
+                            <ul class="tv-list">
+                                {{ range $key, $value :=.om }}
+                                {{ if gt $key 0}}
+                                <li>
+                                    <div class="v-pic">
+                                        <img data-src="{{$value.Picture}}" class="thumb" alt="{{$value.Name}}"
+                                             src="{{$value.Picture}}" style="display: block;">
+                                        <div class="v-tips">{{$value.EmNum}}</div>
+                                        <a href="/detail/{{$value.Id}}" title="{{$value.Name}}" class="v-playBtn">
+                                            <i></i>
+                                        </a>
+                                    </div>
+                                    <div class="v-txt"><span class="v-tit"><a href="/detail/{{$value.Id}}" title="{{$value.Name}}">
+                                            {{$value.Name}}</a></span></div></li>
+                                {{ end }}
+                                {{ end }}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
-
-
-<h3>Table</h3>
-<table border="1">
-    {{range .items}}
-    <tr>
-        <td>{{.Id}}</td>
-        <td>{{.Name}}</td>
-        <td>
-            <Button onclick="ajaxDelete({{.Id}})">Delete</Button>
-        </td>
-    </tr>
-    {{end}}
-</table>
-
-
-<script>
-    function ajaxAdd() {
-        let name = $("#name").val();
-        console.log("add:", { name });
-
-        $.ajax({
-            url: "/",
-            type: "post",
-            processData: false,
-            contentType: "application/json",
-            dataType: "json",
-            data: JSON.stringify({ name }),
-            success: function (msg) {
-                alert("add succefully");
-                window.location.reload();
-            },
-            error: function (xhr, textstatus, thrown) {
-                alert("error:" + JSON.stringify({ xhr, textstatus, thrown }))
-
-            }
-        });
-    }
-
-    function ajaxUpdate() {
-        let id = parseInt($("#id").val()); //这个类型要和go的一致, 不然go会解析出错
-        let name = $("#name").val();
-        console.log("update:", { id, name });
-
-        $.ajax({
-            url: "/",
-            type: "put",
-            processData: false,
-            contentType: "application/json",
-            dataType: "json",
-            data: JSON.stringify({ id, name }),
-            success: function (msg) {
-                alert("update succefully");
-                window.location.reload();
-            },
-            error: function (xhr, textstatus, thrown) {
-                alert("error:" + JSON.stringify({ xhr, textstatus, thrown }))
-
-            }
-        });
-    }
-
-    function ajaxDelete(id) {
-        $.ajax({
-            url: "/?id=" + id,
-            type: "delete",
-            success: function (msg) {
-                alert("delete succefully");
-                window.location.reload();
-            },
-            error: function (xhr, textstatus, thrown) {
-                alert("error:" + JSON.stringify({ xhr, textstatus, thrown }))
-
-            }
-        });
-    }
-
-</script> {{template "footer" .}}
+{{template "footer" .}}

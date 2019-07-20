@@ -30,3 +30,9 @@ type DramaData struct {
 	From string
 	Url  string
 }
+type AnimeInfo struct {
+	Anime
+	Director string
+	Star     string
+	Drama    map[string][]Drama
+}
