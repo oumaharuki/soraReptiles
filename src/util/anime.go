@@ -14,13 +14,13 @@ import (
 var (
 	wgGetPage sync.WaitGroup
 	wgSave    sync.WaitGroup
-	dataChan  = make(chan model.AnimeData, 1000)
-	doChan    = make(chan int, 5)
+	dataChan  = make(chan model.AnimeData, 2000)
+	doChan    = make(chan int, 10)
 )
 
 func Anime(start, end string) {
 	startInt, _ := strconv.Atoi(start)
-	endInt, _ := strconv.Atoi(start)
+	endInt, _ := strconv.Atoi(end)
 	for i := startInt; i <= endInt; i++ {
 		fmt.Printf("第%d页开始\n", i)
 		url := "http://pilipali.cc/vod/show/id/4/page/" + strconv.Itoa(i) + ".html"
@@ -76,9 +76,9 @@ func GetPageData(url string) {
 	for i, item := range allUrl {
 		fmt.Println("第" + strconv.Itoa(i+1) + "个：" + item[1])
 		//处理单个动漫
-		if item[1] == "/vod/detail/id/2337.html" {
-			continue
-		}
+		//if item[1] == "/vod/detail/id/2337.html" {
+		//	continue
+		//}
 		AnimeItemHandle(i+1, item[1])
 	}
 
