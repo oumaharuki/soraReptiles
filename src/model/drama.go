@@ -36,3 +36,11 @@ type AnimeInfo struct {
 	Star     string
 	Drama    map[string][]Drama
 }
+type DramaInfo struct {
+	Anime
+	Director string
+	Star     string
+	PlayUrl  string
+	PlayName string
+	Drama    map[string][]Drama
+}

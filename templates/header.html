@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="/css/reset.css">
     <link rel="stylesheet" href="/css/index.css">
     <link rel="stylesheet" href="/css/app.css">
+    <script src="/js/jquery.js"></script>
     <body>
     <div class="w1280">
         <div class="head">
@@ -15,13 +16,19 @@
                 <a href="/"  class="cur">首页</a>
                 <a href="/">动漫</a>
             </nav>
-            <form name="formsearch" class="searchform" action="/vod/search.html" method="post" autocomplete="off">
-                <input class="ipt" placeholder="输入影片片名或演员名称。" name="wd" type="text" id="wd" required="">
+            <form name="formsearch" class="searchform" action="/search.html" method="post" autocomplete="off">
+                <input class="ipt" placeholder="输入影片片名或演员名称。" name="wd" id="searchtext" type="text" id="wd" required="">
                 <input type="submit" id="searchbutton" value="" class="hide">
-                <a href="javascript:" class="ibtn" title="搜索" onclick="$('.searchform').submit();">
+                <a href="javascript:" class="ibtn" title="搜索" onclick="submit()">
                     <!--<i class="iconfont"></i>-->
                     搜索</a>
             </form>
+            <script>
+                function submit() {
+                    var val=$("#searchtext").val();
+                    window.location.href="/search/"+val+"/page/1"
+                }
+            </script>
         </div>
     </div>
 
