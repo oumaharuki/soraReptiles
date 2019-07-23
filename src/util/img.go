@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -31,15 +31,24 @@ func SaveImg(url, imgPath, path string, str []string) {
 		if err != nil {
 			return
 		}
+		f, err := os.Create(imgPath)
 		defer resp.Body.Close()
 
-		respbyte, _ := ioutil.ReadAll(resp.Body)
+		buf := make([]byte, 4096)
+		for {
+			n, err1 := resp.Body.Read(buf)
+			if n == 0 {
+				break
+			}
+			if err1 != nil && err1 != io.EOF {
+				err = err1
+				fmt.Println("下载失败")
+				return
+			} else {
+				fmt.Println("下载成功")
+			}
 
-		err = ioutil.WriteFile(imgPath, respbyte, 06444)
-		if err != nil {
-			fmt.Println("下载失败")
-		} else {
-			fmt.Println("下载成功")
+			f.Write(buf[:n])
 		}
 
 	} else {
@@ -47,15 +56,24 @@ func SaveImg(url, imgPath, path string, str []string) {
 		if err != nil {
 			return
 		}
+		f, err := os.Create(imgPath)
 		defer resp.Body.Close()
 
-		respbyte, _ := ioutil.ReadAll(resp.Body)
+		buf := make([]byte, 4096)
+		for {
+			n, err1 := resp.Body.Read(buf)
+			if n == 0 {
+				break
+			}
+			if err1 != nil && err1 != io.EOF {
+				err = err1
+				fmt.Println("下载失败")
+				return
+			} else {
+				fmt.Println("下载成功")
+			}
 
-		err = ioutil.WriteFile(imgPath, respbyte, 06444)
-		if err != nil {
-			fmt.Println("下载失败")
-		} else {
-			fmt.Println("下载成功")
+			f.Write(buf[:n])
 		}
 	}
 }

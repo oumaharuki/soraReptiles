@@ -9,13 +9,18 @@ import (
 	tem "html/template"
 	"log"
 	"os"
-	"strconv"
 	"tools"
 )
 
-func Add1(a string, b int) int {
-	aInt, _ := strconv.Atoi(a)
-	return aInt + b
+func Add1(a int, b int) int {
+	//aInt, _ := strconv.Atoi(a)
+	return (a + b)
+}
+func ride(a int, b int) int {
+	return a * b
+}
+func reduce(a int, b int) int {
+	return a - b
 }
 func main() {
 
@@ -36,7 +41,7 @@ func main() {
 		}
 	}
 
-	template := tem.FuncMap{"Add1": Add1}
+	template := tem.FuncMap{"Add1": Add1, "ride": ride, "reduce": reduce}
 	m := martini.Classic()
 	m.Use(martini.Static("public"))
 	m.Use(render.Renderer(render.Options{

@@ -359,11 +359,47 @@ func getAnimeByName(name, page string) (rs []model.AnimeInfo, rsInt int64) {
 	}
 	return
 }
+
+type PageInfo struct {
+	Name string
+	Url  string
+}
+type PageModel struct {
+	Flag int
+	Page []PageInfo
+}
+
 func DefaultGetSearch(params martini.Params, req *http.Request, r render.Render) {
 
 	name := params["name"]
 	page := params["page"]
 	anime, rsInt := getAnimeByName(name, page)
+
+	pageInt, _ := strconv.Atoi(page)
+
+	//pages := struct {
+	//	Start  PageModel
+	//	Middle PageModel
+	//	End    PageModel
+	//}{}
+	//
+	//if rsInt < 10 {
+	//	pages.Start.Flag = 0
+	//	pages.Middle.Flag = 0
+	//	pages.End.Flag = 0
+	//} else {
+	//	if pageInt-4 < 0 {
+	//		pages.Start.Flag = 0
+	//		pages.Middle.Flag = 1
+	//	}
+	//}
+
+	pages := 0
+	if rsInt*10 > 0 {
+		pages = int(rsInt)/10 + 1
+	} else {
+		pages = int(rsInt) / 10
+	}
 
 	r.HTML(200, "default/search", map[string]interface{}{
 		"title": "I am title",
@@ -371,7 +407,8 @@ func DefaultGetSearch(params martini.Params, req *http.Request, r render.Render)
 		"name":  name,
 		"len":   len(anime),
 		"total": rsInt,
-		"page":  page,
+		"page":  pageInt,
+		"pages": pages,
 	})
 
 }
