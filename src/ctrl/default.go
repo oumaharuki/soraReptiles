@@ -215,10 +215,9 @@ func getAnimeById(id string) (rs []model.AnimeInfo) {
 }
 func DefaultGetDetail(params martini.Params, req *http.Request, r render.Render) {
 	id := params["id"]
-	fmt.Println(id)
+
 	anime := getAnimeById(id)
 
-	fmt.Println(anime)
 	if len(anime) == 0 {
 		r.Redirect("/404", 200)
 	} else {
@@ -229,9 +228,150 @@ func DefaultGetDetail(params martini.Params, req *http.Request, r render.Render)
 	}
 
 }
-func DefaultGetPlay(req *http.Request, r render.Render) {
-	r.HTML(200, "default/play", map[string]interface{}{
+func getDramaById(id string) (rs []model.DramaInfo) {
+	dbConn := tools.GetDefDb()
+
+	drama := []model.Drama{}
+	_, err := dbConn.DbMap.Select(&drama, "select * from drama where id=?", id)
+	tools.CheckErr(err)
+	fmt.Println("drama", drama)
+	if len(drama) == 0 {
+		return
+	}
+
+	anime := []model.Anime{}
+	_, err = dbConn.DbMap.Select(&anime, "select * from anime where id=?", drama[0].AnimeId)
+	tools.CheckErr(err)
+
+	if len(anime) == 0 {
+		return
+	}
+
+	obj := model.DramaInfo{}
+	obj.PlayUrl = drama[0].PlayUrl
+	obj.PlayName = drama[0].Name
+
+	director := []model.Director{}
+	_, err = dbConn.DbMap.Select(&director, "select * from director where anime_id=?", anime[0].Id)
+	tools.CheckErr(err)
+	obj.Anime = anime[0]
+	if len(director) > 0 {
+		obj.Director = director[0].Name
+	}
+	star := []model.Star{}
+	_, err = dbConn.DbMap.Select(&star, "select * from star where anime_id=?", anime[0].Id)
+	tools.CheckErr(err)
+
+	starStr := ""
+	if len(star) > 0 {
+		for _, o := range star {
+			starStr = starStr + " " + o.Name
+		}
+	}
+	obj.Star = starStr
+
+	dramas := []model.Drama{}
+	_, err = dbConn.DbMap.Select(&dramas, "select * from drama where anime_id=?", anime[0].Id)
+	tools.CheckErr(err)
+	//fmt.Println(drama)
+	dramaMap := map[string][]model.Drama{}
+
+	for _, item := range dramas {
+		dramaMap[item.Source] = append(dramaMap[item.Source], item)
+	}
+	obj.Drama = dramaMap
+	rs = append(rs, obj)
+
+	return
+}
+func DefaultGetPlay(params martini.Params, req *http.Request, r render.Render) {
+
+	id := params["id"]
+	anime := getDramaById(id)
+
+	if len(anime) == 0 {
+		r.Redirect("/404", 200)
+	} else {
+		r.HTML(200, "default/play", map[string]interface{}{
+			"title": "I am title",
+			"anime": anime[0],
+		})
+	}
+
+}
+func getAnimeByName(name, page string) (rs []model.AnimeInfo, rsInt int64) {
+
+	pageInt, _ := strconv.Atoi(page)
+	start := (pageInt - 1) * 10
+	dbConn := tools.GetDefDb()
+
+	anime := []model.Anime{}
+	_, err := dbConn.DbMap.Select(&anime, "select * from anime where name like ? limit ?,?",
+		"%"+name+"%", start, 10)
+	tools.CheckErr(err)
+
+	rsInt, err = dbConn.DbMap.SelectInt("select count(*) from anime where name like ? ",
+		"%"+name+"%")
+	tools.CheckErr(err)
+
+	if len(anime) == 0 {
+		return
+	}
+
+	for _, item := range anime {
+		obj := model.AnimeInfo{}
+
+		director := []model.Director{}
+		_, err := dbConn.DbMap.Select(&director, "select * from director where anime_id=?", item.Id)
+		tools.CheckErr(err)
+		obj.Anime = item
+		if len(director) > 0 {
+			obj.Director = director[0].Name
+		}
+		star := []model.Star{}
+		_, err = dbConn.DbMap.Select(&star, "select * from star where anime_id=?", item.Id)
+		tools.CheckErr(err)
+
+		starStr := ""
+		if len(star) > 0 {
+			for _, o := range star {
+				starStr = starStr + " " + o.Name
+			}
+		}
+		obj.Star = starStr
+
+		drama := []model.Drama{}
+		_, err = dbConn.DbMap.Select(&drama, "select * from drama where anime_id=?", item.Id)
+		tools.CheckErr(err)
+		//fmt.Println(drama)
+		dramaMap := map[string][]model.Drama{}
+
+		for _, item := range drama {
+			fmt.Println(item)
+			dramaMap[item.Source] = append(dramaMap[item.Source], item)
+		}
+		//for _, item := range dramaMap {
+		//	sort.Sort(ByDrama(item))
+		//}
+		fmt.Println(dramaMap)
+		obj.Drama = dramaMap
+		rs = append(rs, obj)
+	}
+	return
+}
+func DefaultGetSearch(params martini.Params, req *http.Request, r render.Render) {
+
+	name := params["name"]
+	page := params["page"]
+	anime, rsInt := getAnimeByName(name, page)
+
+	r.HTML(200, "default/search", map[string]interface{}{
 		"title": "I am title",
-		//"items": items,
+		"anime": anime,
+		"name":  name,
+		"len":   len(anime),
+		"total": rsInt,
+		"page":  page,
 	})
+
 }

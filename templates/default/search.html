@@ -1,0 +1,54 @@
+{{template "header" .}}
+<div class="w1280">
+    <div class="col-l">
+        <div class="tv-hd v-border"><h2><span><em>{{.name}}</em></span>相关视频</h2><span class="s_num">共有<em
+                        class="mac_total">{{.len}}</em>部</span></div>
+        <div class="tv-bd search-list">
+{{ range $key, $value :=.anime }}
+            <div class="item clearfix">
+                <div class="item_pic"><img src="{{$value.Picture}}"
+                                           alt="{{$value.Name}}"><span class="v-tips"><em>{{$value.EmNum}}</em></span><a
+                            href="/detail/{{$value.Id}}" class="v-playBtn"><i></i></a></div>
+                <div class="item_txt">
+                    <div class="intro_con">
+                        <div class="tit"><span class="s_tit"><a href="/detail/{{$value.Id}}"><strong>{{$value.Name}}</strong>
+                                </a></span><span
+                                    class="s_type">[动漫]</span></div>
+                        <ul class="txt_list clearfix">
+                            <li class="clearfix"><em class="em_tit">导演：</em>{{$value.Director}}&nbsp;<em
+                                        class="em_tit">年代：</em><em>{{$value.Year}}&nbsp;</em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                               </li>
+                            <li class="clearfix"><em class="em_tit">主演：</em>{{$value.Star}}&nbsp;
+                            </li>
+                            <li class="li_intro clearfix"><em class="em_tit">简介：</em>
+                                <div class="p_intro">
+                                    {{$value.Introduction}}
+                                </div>
+                            </li>
+                        </ul>
+                        <p class="p_bottom"><a href="/detail/{{$value.Id}}" class="v_yellow_btn"><i
+                                        class="iconfont"></i>播放</a></p></div>
+                </div>
+            </div>
+{{ end }}
+            <div class="v-page clearfix">共{{.len}}条数据&nbsp;当前:{{.page}}/{{.total}}页&nbsp;
+                <span class="pagenow">{{.page}}</span>&nbsp;
+                {{if lt .page .total}}
+                    {{if lt Add1 .page 1 .total}}
+                <a
+                        class="pagelink_b" href="/search/{{.name}}/page/{{Add1 .page 1}}">{{Add1 .page 1}}</a>&nbsp;
+                    {{ end }}
+                <a class="pagelink_b"
+                   href="/search/{{.name}}/page/{{Add1 .page 2}}">{{Add1 .page 2}}</a>&nbsp;<a
+                        class="pagelink_b" href="/search/{{.name}}/page/{{Add1 .page 3}}">{{Add1 .page 3}}</a>&nbsp;
+                <a class="pagelink_b" href="/search/{{.name}}/page/{{Add1 .page 4}}">{{Add1 .page 4}}</a>&nbsp;<a
+                        class="pagelink_b" href="/search/{{.name}}/page/{{Add1 .page 5}}">{{Add1 .page 5}}</a>&nbsp;
+                <a href="/search/{{.name}}/page/{{Add1 .page 1}}"
+                                                                                        class="pagelink_a">下一页</a>&nbsp;<a
+                        href="/search/{{.name}}/page/{{.total}}" class="pagelink_a">尾页</a>&nbsp;
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{template "footer" .}}

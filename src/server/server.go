@@ -4,14 +4,19 @@ import (
 	"config"
 	"flag"
 	"fmt"
-	"log"
-	"os"
-	"tools"
-
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
+	tem "html/template"
+	"log"
+	"os"
+	"strconv"
+	"tools"
 )
 
+func Add1(a string, b int) int {
+	aInt, _ := strconv.Atoi(a)
+	return aInt + b
+}
 func main() {
 
 	configFile := ""
@@ -31,9 +36,11 @@ func main() {
 		}
 	}
 
+	template := tem.FuncMap{"Add1": Add1}
 	m := martini.Classic()
 	m.Use(martini.Static("public"))
 	m.Use(render.Renderer(render.Options{
+		Funcs:      []tem.FuncMap{template},
 		Directory:  "./templates",     // Specify what path to load the templates from.
 		Extensions: []string{".html"}, // Specify extensions to load for templates.
 	}))
