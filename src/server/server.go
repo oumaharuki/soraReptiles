@@ -22,6 +22,9 @@ func ride(a int, b int) int {
 func reduce(a int, b int) int {
 	return a - b
 }
+func compare(a string, b string) bool {
+	return a == b
+}
 func main() {
 
 	configFile := ""
@@ -41,7 +44,7 @@ func main() {
 		}
 	}
 
-	template := tem.FuncMap{"Add1": Add1, "ride": ride, "reduce": reduce}
+	template := tem.FuncMap{"Add1": Add1, "ride": ride, "reduce": reduce, "compare": compare}
 	m := martini.Classic()
 	m.Use(martini.Static("public"))
 	m.Use(render.Renderer(render.Options{

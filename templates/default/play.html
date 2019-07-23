@@ -57,12 +57,13 @@
                                                        class="fjtab cur">线路1</a><a href="javascript:zush(2);"
                                                                                    id="zush_2" class="fjtab">线路2</a>
                         </div>
-{{ range $key, $value :=.anime.Drama }}
+                        {{ range $key, $value :=.anime.Drama }}
                         <div class="xjs xjs_1">
                             <div class="xjn">
-                                <ul class="xjn_ul play-list">
+
+                                <ul class="xjn_ul play-list clearfix">
                                     {{ range $k, $v :=$value }}
-                                         {{ if eq $k 0 }}
+                                         {{ if compare $.id $v.Id }}
                                     <li class="xjn_li zhwli_1"><a class="x_n cur"
                                                                   href="/play/{{$v.Id}}">{{$v.Name}}</a>
                                     </li>
@@ -73,13 +74,14 @@
                                          {{ end }}
                                     {{ end }}
                                 </ul>
+
                             </div>
                         </div>
-{{ end }}
+                        {{ end }}
                     </div>
                     <script> function zush(i) {
                         $('.xjs').hide();
-                        $('.xjs_' + i).show();
+                        $('.xjs.xjs_1').eq(i-1).show();
                         $('.fjtab').removeClass('cur');
                         $('#zush_' + i).addClass('cur')
                     } </script>
@@ -97,4 +99,3 @@
             <p class="hoster"><span>导演：{{.anime.Director}}&nbsp;</span><span style="padding-left: 30px">主演：{{.anime.Star}}&nbsp;</span></p></div>
     </section>
 </div>
-{{template "footer" .}}

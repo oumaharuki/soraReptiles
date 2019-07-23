@@ -1,6 +1,6 @@
 package model
 type Anime struct{
-	Id int64 `db:"id" json:"id"`
+	Id string `db:"id" json:"id"`
 	SId int64 `db:"s_id" json:"s_id"`
 	Name string `db:"name" json:"name"`
 	EmNum string `db:"em_num" json:"em_num"`
@@ -18,7 +18,7 @@ type Director struct{
 	CreateTime string `db:"create_time" json:"create_time"`
 }
 type Drama struct{
-	Id int `db:"id" json:"id"`
+	Id string `db:"id" json:"id"`
 	Name string `db:"name" json:"name"`
 	PlayUrl string `db:"play_url" json:"play_url"`
 	Source string `db:"source" json:"source"`

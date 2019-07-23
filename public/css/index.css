@@ -1,0 +1,72 @@
+.head{
+    z-index: 9999;
+    width: 100%;
+    height: 5pc;
+    border-bottom: 1px solid #eee;
+    background-color: #fff;
+    box-shadow: 1px 0 5px rgba(0,0,0,.06);
+    transition: .3s 0s all linear;
+    display: flex;
+    padding: 0 20px 0 20px;
+}
+.head h1{
+    width: 150px;
+    padding: 20px 0 18px;
+    line-height: 40px;
+    font-weight: bold;
+    color: #fb7299;
+    font-size: 20px;
+    font-family: "Arial", "Microsoft YaHei", "黑体", "宋体", "微软雅黑", sans-serif;
+    margin-right: 50px;
+}
+.head h1 img{
+    height: 40px;
+}
+.head nav{
+    flex: 1;
+    font-size: 16px;
+    line-height: 40px;
+}
+.head nav a{
+    display: inline-block;
+    margin-right: 40px;
+    padding: 20px 0 18px;
+    border-bottom: 2px solid transparent;
+    transition: .3s 0s all linear;
+}
+.searchform{
+    position: relative;
+    float: right;
+    margin-top: 24px;
+    flex: 1;
+    transition: .3s 0s all linear;
+}
+.searchform .ipt, .uc .ipt {
+    padding: 0 60px 0 10px;
+    width: 100%;
+    height: 38px;
+    border: 2px solid #fb7299;
+    border-radius: 4px;
+    background-color: #fff;
+}
+input, input[type=submit], input[type=text] {
+    outline: 0;
+    font-family: Microsoft YaHei,SimHei,helvetica,arial,verdana,tahoma,sans-serif;
+    -webkit-appearance: none;
+}
+.searchform .ibtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    width: 60px;
+    border-radius: 0 4px 4px 0;
+    background-color: #fb7299;
+    color: #fff;
+    text-align: center;
+    line-height: 38px;
+}
+.head a.cur {
+    color: #fb7299;
+    border-bottom-color: #fb7299;
+}

@@ -11,7 +11,7 @@ func InitRoute(m *martini.ClassicMartini) {
 	m.Get("/", ctrl.DefaultGetHome)
 	m.Get("/detail/:id", ctrl.DefaultGetDetail)
 	m.Get("/play/:id", ctrl.DefaultGetPlay)
-	m.Get("/search/:name/page/:page", ctrl.DefaultGetSearch)
+	m.Get("/search", ctrl.DefaultGetSearch)
 	//m.Post("/", ctrl.DefaultPostHome) //Post一般负责添加的
 	//m.Put("/", ctrl.DefaultPutHome)   //Put一般负责修改的
 	//m.Delete("/", ctrl.DefaultDeleteHome)

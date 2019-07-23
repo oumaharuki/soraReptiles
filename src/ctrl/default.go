@@ -295,24 +295,40 @@ func DefaultGetPlay(params martini.Params, req *http.Request, r render.Render) {
 		r.HTML(200, "default/play", map[string]interface{}{
 			"title": "I am title",
 			"anime": anime[0],
+			"id":    id,
 		})
 	}
 
 }
 func getAnimeByName(name, page string) (rs []model.AnimeInfo, rsInt int64) {
 
+	if page == "" {
+		page = "1"
+	}
+	fmt.Println("page:", page)
 	pageInt, _ := strconv.Atoi(page)
 	start := (pageInt - 1) * 10
 	dbConn := tools.GetDefDb()
 
 	anime := []model.Anime{}
-	_, err := dbConn.DbMap.Select(&anime, "select * from anime where name like ? limit ?,?",
-		"%"+name+"%", start, 10)
-	tools.CheckErr(err)
+	fmt.Println("name:", name)
+	nameStr := "%" + name + "%"
+	if name == "" {
+		_, err := dbConn.DbMap.Select(&anime, "select * from anime limit ?,?",
+			start, 10)
+		tools.CheckErr(err)
 
-	rsInt, err = dbConn.DbMap.SelectInt("select count(*) from anime where name like ? ",
-		"%"+name+"%")
-	tools.CheckErr(err)
+		rsInt, err = dbConn.DbMap.SelectInt("select count(*) from anime")
+		tools.CheckErr(err)
+	} else {
+		_, err := dbConn.DbMap.Select(&anime, "select * from anime where name like ? limit ?,?",
+			nameStr, start, 10)
+		tools.CheckErr(err)
+
+		rsInt, err = dbConn.DbMap.SelectInt("select count(*) from anime where name like ? ",
+			nameStr)
+		tools.CheckErr(err)
+	}
 
 	if len(anime) == 0 {
 		return
@@ -370,11 +386,11 @@ type PageModel struct {
 }
 
 func DefaultGetSearch(params martini.Params, req *http.Request, r render.Render) {
+	req.ParseForm()
+	name := req.Form.Get("name")
+	page := req.Form.Get("page")
 
-	name := params["name"]
-	page := params["page"]
 	anime, rsInt := getAnimeByName(name, page)
-
 	pageInt, _ := strconv.Atoi(page)
 
 	//pages := struct {
