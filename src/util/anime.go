@@ -14,11 +14,12 @@ import (
 var (
 	wgGetPage sync.WaitGroup
 	wgSave    sync.WaitGroup
-	dataChan  = make(chan model.AnimeData, 2000)
-	doChan    = make(chan int, 10)
+	dataChan  chan model.AnimeData
+	doChan    = make(chan int, 5)
 )
 
 func Anime(start, end string) {
+	dataChan = make(chan model.AnimeData, 4000)
 	startInt, _ := strconv.Atoi(start)
 	endInt, _ := strconv.Atoi(end)
 	for i := startInt; i <= endInt; i++ {

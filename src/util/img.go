@@ -18,10 +18,6 @@ func Exists(path string) bool {
 }
 func SaveImg(url, imgPath, path string, str []string) {
 	///upload/vod/20190712-1/37028a8a314e23ed79ef7e4c31dd14b4.jpg
-
-	fmt.Println(str)
-	fmt.Println(len(str))
-
 	url = "http://pilipali.cc" + url
 	bol := Exists(path)
 
