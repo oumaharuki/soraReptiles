@@ -14,7 +14,7 @@ import (
 	"github.com/martini-contrib/render"
 )
 
-type ByDrama []model.Drama
+type ByDrama []model.Chapter
 
 func (s ByDrama) Len() int {
 	return len(s)
@@ -26,6 +26,8 @@ func (s ByDrama) Less(i, j int) bool {
 	reg := regexp.MustCompile(`.*([0-9]+).*`)
 	si := reg.FindAllStringSubmatch(s[i].Name, 1)
 	sj := reg.FindAllStringSubmatch(s[j].Name, 1)
+
+	fmt.Println("s[i].Name:", s[i].Name)
 	siInt, _ := strconv.Atoi(si[0][1])
 	sjInt, _ := strconv.Atoi(sj[0][1])
 	return siInt < sjInt
@@ -46,14 +48,14 @@ func getAnimeByAreaAndYear(area string, year string) (rs []model.AnimeInfo) {
 		obj := model.AnimeInfo{}
 
 		director := []model.Director{}
-		_, err := dbConn.DbMap.Select(&director, "select * from director where anime_id=?", item.Id)
+		_, err := dbConn.DbMap.Select(&director, "select * from director where pid=?", item.Id)
 		tools.CheckErr(err)
 		obj.Anime = item
 		if len(director) > 0 {
 			obj.Director = director[0].Name
 		}
 		star := []model.Star{}
-		_, err = dbConn.DbMap.Select(&star, "select * from star where anime_id=?", item.Id)
+		_, err = dbConn.DbMap.Select(&star, "select * from star where pid=?", item.Id)
 		tools.CheckErr(err)
 
 		starStr := ""
@@ -79,10 +81,11 @@ func DefaultGetHome(req *http.Request, r render.Render) {
 	om := getAnimeByAreaAndYear("欧美", "")
 
 	r.HTML(200, "default/home", map[string]interface{}{
-		"title": "I am title",
+		"title": "sora anime",
 		"jp":    jp,
 		"gc":    gc,
 		"om":    om,
+		"cur":   "cur",
 		//"items": items,
 	})
 }
@@ -165,6 +168,22 @@ func DefaultDeleteHome(req *http.Request, r render.Render) {
 	r.JSON(200, nil)
 
 }
+func BubbleAsort(values []model.Chapter) []model.Chapter {
+	for i := 0; i < len(values)-1; i++ {
+		for j := i + 1; j < len(values); j++ {
+			reg := regexp.MustCompile(`(\d+)`)
+			si := reg.FindAllStringSubmatch(values[i].Name, 1)
+			sj := reg.FindAllStringSubmatch(values[j].Name, 1)
+			siInt, _ := strconv.Atoi(si[0][1])
+			sjInt, _ := strconv.Atoi(sj[0][1])
+			if siInt > sjInt {
+				values[i], values[j] = values[j], values[i]
+			}
+		}
+	}
+	return values
+}
+
 func getAnimeById(id string) (rs []model.AnimeInfo) {
 	dbConn := tools.GetDefDb()
 
@@ -176,14 +195,14 @@ func getAnimeById(id string) (rs []model.AnimeInfo) {
 		obj := model.AnimeInfo{}
 
 		director := []model.Director{}
-		_, err := dbConn.DbMap.Select(&director, "select * from director where anime_id=?", item.Id)
+		_, err := dbConn.DbMap.Select(&director, "select * from director where pid=?", item.Id)
 		tools.CheckErr(err)
 		obj.Anime = item
 		if len(director) > 0 {
 			obj.Director = director[0].Name
 		}
 		star := []model.Star{}
-		_, err = dbConn.DbMap.Select(&star, "select * from star where anime_id=?", item.Id)
+		_, err = dbConn.DbMap.Select(&star, "select * from star where pid=?", item.Id)
 		tools.CheckErr(err)
 
 		starStr := ""
@@ -194,21 +213,23 @@ func getAnimeById(id string) (rs []model.AnimeInfo) {
 		}
 		obj.Star = starStr
 
-		drama := []model.Drama{}
-		_, err = dbConn.DbMap.Select(&drama, "select * from drama where anime_id=?", item.Id)
+		drama := []model.Chapter{}
+		_, err = dbConn.DbMap.Select(&drama, "select * from chapter where pid=?", item.Id)
 		tools.CheckErr(err)
 		//fmt.Println(drama)
-		dramaMap := map[string][]model.Drama{}
+		dramaMap := map[string][]model.Chapter{}
 
 		for _, item := range drama {
 			fmt.Println(item)
 			dramaMap[item.Source] = append(dramaMap[item.Source], item)
 		}
-		//for _, item := range dramaMap {
-		//	sort.Sort(ByDrama(item))
-		//}
-		fmt.Println(dramaMap)
-		obj.Drama = dramaMap
+		arr := map[string][]model.Chapter{}
+		for k, item := range dramaMap {
+			item = BubbleAsort(item)
+			arr[k] = item
+		}
+
+		obj.Drama = arr
 		rs = append(rs, obj)
 	}
 	return
@@ -218,29 +239,32 @@ func DefaultGetDetail(params martini.Params, req *http.Request, r render.Render)
 
 	anime := getAnimeById(id)
 
+	fmt.Println("len", len(anime[0].Drama))
 	if len(anime) == 0 {
 		r.Redirect("/404", 200)
 	} else {
 		r.HTML(200, "default/detail", map[string]interface{}{
-			"title": "I am title",
+			"title": "sora anime",
 			"anime": anime[0],
+			"len":   len(anime[0].Drama),
+			"cur":   "",
 		})
 	}
 
 }
-func getDramaById(id string) (rs []model.DramaInfo) {
+func getDramaById(id string) (rs []model.DramaInfo, source string) {
 	dbConn := tools.GetDefDb()
 
-	drama := []model.Drama{}
-	_, err := dbConn.DbMap.Select(&drama, "select * from drama where id=?", id)
+	drama := []model.Chapter{}
+	_, err := dbConn.DbMap.Select(&drama, "select * from chapter where id=?", id)
 	tools.CheckErr(err)
-	fmt.Println("drama", drama)
+
 	if len(drama) == 0 {
 		return
 	}
-
+	source = drama[0].Source
 	anime := []model.Anime{}
-	_, err = dbConn.DbMap.Select(&anime, "select * from anime where id=?", drama[0].AnimeId)
+	_, err = dbConn.DbMap.Select(&anime, "select * from anime where id=?", drama[0].Pid)
 	tools.CheckErr(err)
 
 	if len(anime) == 0 {
@@ -248,18 +272,26 @@ func getDramaById(id string) (rs []model.DramaInfo) {
 	}
 
 	obj := model.DramaInfo{}
-	obj.PlayUrl = drama[0].PlayUrl
+	if source == "kkm3u8" || source == "kkyun" {
+		//"https://www.heimijx.com/jx/api/?url=" +
+		obj.PlayUrl = drama[0].Path
+	} else if source == "qiyi" || source == "sohu" {
+		obj.PlayUrl = "http://mv.688ing.com/player?url=" + drama[0].Path
+	} else {
+		obj.PlayUrl = drama[0].Path
+	}
+
 	obj.PlayName = drama[0].Name
 
 	director := []model.Director{}
-	_, err = dbConn.DbMap.Select(&director, "select * from director where anime_id=?", anime[0].Id)
+	_, err = dbConn.DbMap.Select(&director, "select * from director where pid=?", anime[0].Id)
 	tools.CheckErr(err)
 	obj.Anime = anime[0]
 	if len(director) > 0 {
 		obj.Director = director[0].Name
 	}
 	star := []model.Star{}
-	_, err = dbConn.DbMap.Select(&star, "select * from star where anime_id=?", anime[0].Id)
+	_, err = dbConn.DbMap.Select(&star, "select * from star where pid=?", anime[0].Id)
 	tools.CheckErr(err)
 
 	starStr := ""
@@ -270,16 +302,21 @@ func getDramaById(id string) (rs []model.DramaInfo) {
 	}
 	obj.Star = starStr
 
-	dramas := []model.Drama{}
-	_, err = dbConn.DbMap.Select(&dramas, "select * from drama where anime_id=?", anime[0].Id)
+	dramas := []model.Chapter{}
+	_, err = dbConn.DbMap.Select(&dramas, "select * from chapter where pid=?", anime[0].Id)
 	tools.CheckErr(err)
 	//fmt.Println(drama)
-	dramaMap := map[string][]model.Drama{}
+	dramaMap := map[string][]model.Chapter{}
 
 	for _, item := range dramas {
 		dramaMap[item.Source] = append(dramaMap[item.Source], item)
 	}
-	obj.Drama = dramaMap
+	arr := map[string][]model.Chapter{}
+	for k, item := range dramaMap {
+		item = BubbleAsort(item)
+		arr[k] = item
+	}
+	obj.Drama = arr
 	rs = append(rs, obj)
 
 	return
@@ -287,15 +324,17 @@ func getDramaById(id string) (rs []model.DramaInfo) {
 func DefaultGetPlay(params martini.Params, req *http.Request, r render.Render) {
 
 	id := params["id"]
-	anime := getDramaById(id)
+	anime, source := getDramaById(id)
 
 	if len(anime) == 0 {
 		r.Redirect("/404", 200)
 	} else {
 		r.HTML(200, "default/play", map[string]interface{}{
-			"title": "I am title",
-			"anime": anime[0],
-			"id":    id,
+			"title":  "sora anime",
+			"anime":  anime[0],
+			"id":     id,
+			"source": source,
+			"cur":    "",
 		})
 	}
 
@@ -338,14 +377,14 @@ func getAnimeByName(name, page string) (rs []model.AnimeInfo, rsInt int64) {
 		obj := model.AnimeInfo{}
 
 		director := []model.Director{}
-		_, err := dbConn.DbMap.Select(&director, "select * from director where anime_id=?", item.Id)
+		_, err := dbConn.DbMap.Select(&director, "select * from director where pid=?", item.Id)
 		tools.CheckErr(err)
 		obj.Anime = item
 		if len(director) > 0 {
 			obj.Director = director[0].Name
 		}
 		star := []model.Star{}
-		_, err = dbConn.DbMap.Select(&star, "select * from star where anime_id=?", item.Id)
+		_, err = dbConn.DbMap.Select(&star, "select * from star where pid=?", item.Id)
 		tools.CheckErr(err)
 
 		starStr := ""
@@ -356,11 +395,11 @@ func getAnimeByName(name, page string) (rs []model.AnimeInfo, rsInt int64) {
 		}
 		obj.Star = starStr
 
-		drama := []model.Drama{}
-		_, err = dbConn.DbMap.Select(&drama, "select * from drama where anime_id=?", item.Id)
+		drama := []model.Chapter{}
+		_, err = dbConn.DbMap.Select(&drama, "select * from chapter where pid=?", item.Id)
 		tools.CheckErr(err)
 		//fmt.Println(drama)
-		dramaMap := map[string][]model.Drama{}
+		dramaMap := map[string][]model.Chapter{}
 
 		for _, item := range drama {
 			fmt.Println(item)
@@ -418,13 +457,14 @@ func DefaultGetSearch(params martini.Params, req *http.Request, r render.Render)
 	}
 
 	r.HTML(200, "default/search", map[string]interface{}{
-		"title": "I am title",
+		"title": "sora anime",
 		"anime": anime,
 		"name":  name,
 		"len":   len(anime),
 		"total": rsInt,
 		"page":  pageInt,
 		"pages": pages,
+		"cur":   "",
 	})
 
 }

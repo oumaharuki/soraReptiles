@@ -1,1 +1,1 @@
-go run src/gen_model/gen_model.go -dbSource "root:@tcp(localhost:3306)/sora_v1" > src/model/model.go
+go run src/gen_model/gen_model.go -dbSource "root:@tcp(localhost:3306)/sora" > src/model/model.go

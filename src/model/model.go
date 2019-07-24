@@ -1,34 +1,38 @@
 package model
-type Anime struct{
-	Id string `db:"id" json:"id"`
-	SId int64 `db:"s_id" json:"s_id"`
-	Name string `db:"name" json:"name"`
-	EmNum string `db:"em_num" json:"em_num"`
-	Year string `db:"year" json:"year"`
-	Area string `db:"area" json:"area"`
-	Picture string `db:"picture" json:"picture"`
-	Introduction string `db:"introduction" json:"introduction"`
-	Form string `db:"form" json:"form"`
-	CreateTime string `db:"create_time" json:"create_time"`
-}
-type Director struct{
-	Id int `db:"id" json:"id"`
-	Name string `db:"name" json:"name"`
-	AnimeId int `db:"anime_id" json:"anime_id"`
-	CreateTime string `db:"create_time" json:"create_time"`
-}
-type Drama struct{
-	Id string `db:"id" json:"id"`
-	Name string `db:"name" json:"name"`
-	PlayUrl string `db:"play_url" json:"play_url"`
-	Source string `db:"source" json:"source"`
-	AnimeId int `db:"anime_id" json:"anime_id"`
-	CreateTime string `db:"create_time" json:"create_time"`
-}
-type Star struct{
-	Id int `db:"id" json:"id"`
-	Name string `db:"name" json:"name"`
-	AnimeId int `db:"anime_id" json:"anime_id"`
-	CreateTime string `db:"create_time" json:"create_time"`
-}
 
+type Anime struct {
+	Id           string `db:"id" json:"id"`
+	Name         string `db:"name" json:"name"`
+	Chapter      string `db:"chapter" json:"chapter"`
+	Total        int    `db:"total" json:"total"`
+	Update       string `db:"update" json:"update"`
+	Index        int    `db:"index" json:"index"`
+	Created      string `db:"created" json:"created"`
+	Year         string `db:"year" json:"year"`
+	Area         string `db:"area" json:"area"`
+	Picture      string `db:"picture" json:"picture"`
+	Introduction string `db:"introduction" json:"introduction"`
+	Form         string `db:"form" json:"form"`
+	Flag         string `db:"flag" json:"flag"`
+}
+type Chapter struct {
+	Id      string `db:"id" json:"id"`
+	Pid     string `db:"pid" json:"pid"`
+	Name    string `db:"name" json:"name"`
+	Path    string `db:"path" json:"path"`
+	Source  string `db:"source" json:"source"`
+	JX      string `db:"j_x" json:"j_x"`
+	Created string `db:"created" json:"created"`
+}
+type Director struct {
+	Id         string `db:"id" json:"id"`
+	Name       string `db:"name" json:"name"`
+	Pid        string `db:"pid" json:"pid"`
+	CreateTime string `db:"create_time" json:"create_time"`
+}
+type Star struct {
+	Id         string `db:"id" json:"id"`
+	Name       string `db:"name" json:"name"`
+	Pid        string `db:"pid" json:"pid"`
+	CreateTime string `db:"create_time" json:"create_time"`
+}

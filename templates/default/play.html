@@ -53,22 +53,29 @@
                     <div class="iptit"><h3>{{.anime.Name}}</h3>
                         <p>第01集</p></div>
                     <div class="fjcon">
-                        <div class="fjtop clearfix"><a href="javascript:zush(1);" id="zush_1"
-                                                       class="fjtab cur">线路1</a><a href="javascript:zush(2);"
-                                                                                   id="zush_2" class="fjtab">线路2</a>
+                        <div class="fjtop clearfix">
+                            {{ range $key, $value :=.anime.Drama }}
+                            {{ if compare $.source $key }}
+                            <a href="javascript:zush('{{$key}}');" id="zush_{{$key}}"
+                               class="fjtab cur">路线{{$key}}</a>
+                                {{else}}
+                                <a href="javascript:zush('{{$key}}');" id="zush_{{$key}}"
+                                   class="fjtab">路线{{$key}}</a>
+                            {{ end }}
+                            {{ end }}
                         </div>
                         {{ range $key, $value :=.anime.Drama }}
-                        <div class="xjs xjs_1">
+                        <div class="xjs xjs_{{$key}}">
                             <div class="xjn">
 
                                 <ul class="xjn_ul play-list clearfix">
                                     {{ range $k, $v :=$value }}
                                          {{ if compare $.id $v.Id }}
-                                    <li class="xjn_li zhwli_1"><a class="x_n cur"
+                                    <li class="xjn_li zhwli_1" style="display: inline-block"><a class="x_n cur"
                                                                   href="/play/{{$v.Id}}">{{$v.Name}}</a>
                                     </li>
                                              {{else}}
-                                             <li class="xjn_li zhwli_1"><a class="x_n"
+                                             <li class="xjn_li zhwli_1" style="display: inline-block"><a class="x_n"
                                                                            href="/play/{{$v.Id}}">{{$v.Name}}</a>
                                              </li>
                                          {{ end }}
@@ -79,11 +86,14 @@
                         </div>
                         {{ end }}
                     </div>
-                    <script> function zush(i) {
+                    <script>
                         $('.xjs').hide();
-                        $('.xjs.xjs_1').eq(i-1).show();
+                        $('.xjs.xjs_{{.source}}').show();;
+                        function zush(key) {
+                        $('.xjs').hide();
+                        $('.xjs.xjs_'+key).show();
                         $('.fjtab').removeClass('cur');
-                        $('#zush_' + i).addClass('cur')
+                        $('#zush_' + key).addClass('cur')
                     } </script>
                 </div>
             </div>

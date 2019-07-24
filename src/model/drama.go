@@ -34,7 +34,7 @@ type AnimeInfo struct {
 	Anime
 	Director string
 	Star     string
-	Drama    map[string][]Drama
+	Drama    map[string][]Chapter
 }
 type DramaInfo struct {
 	Anime
@@ -42,5 +42,5 @@ type DramaInfo struct {
 	Star     string
 	PlayUrl  string
 	PlayName string
-	Drama    map[string][]Drama
+	Drama    map[string][]Chapter
 }
